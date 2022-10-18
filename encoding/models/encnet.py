@@ -3,7 +3,7 @@
 # Email: zhang.hang@rutgers.edu 
 # Copyright (c) 2017
 ###########################################################################
-
+import sys
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -31,6 +31,7 @@ class EncNet(BaseNet):
     def forward(self, x):
         imsize = x.size()[2:]
         features = self.base_forward(x)
+        print (f'base_forword features_len : {len(features)}')
 
         x = list(self.head(*features))
         x[0] = F.interpolate(x[0], imsize, **self._up_kwargs)
@@ -45,14 +46,24 @@ class EncModule(nn.Module):
     def __init__(self, in_channels, nclass, ncodes=32, se_loss=True, norm_layer=None):
         super(EncModule, self).__init__()
         self.se_loss = se_loss
+        # self.encoding = nn.Sequential(
+        #     nn.Conv2d(in_channels, in_channels, 1, bias=False),
+        #     norm_layer(in_channels),
+        #     nn.ReLU(inplace=True),
+        #     encoding.nn.Encoding(D=in_channels, K=ncodes),
+        #     norm_layer(ncodes),???
+        #     nn.ReLU(inplace=True),
+        #     encoding.nn.Mean(dim=1))
         self.encoding = nn.Sequential(
             nn.Conv2d(in_channels, in_channels, 1, bias=False),
             norm_layer(in_channels),
             nn.ReLU(inplace=True),
-            encoding.nn.Encoding(D=in_channels, K=ncodes),
-            norm_layer(ncodes),
+            encoding.nn.Encoding(D=in_channels, K=ncodes),#输出维度torch.Size([1, 32, 512])
+            torch.nn.BatchNorm1d(ncodes),
             nn.ReLU(inplace=True),
-            encoding.nn.Mean(dim=1))
+            encoding.nn.Mean(dim=1)
+
+            )
         self.fc = nn.Sequential(
             nn.Linear(in_channels, in_channels),
             nn.Sigmoid())
@@ -60,13 +71,18 @@ class EncModule(nn.Module):
             self.selayer = nn.Linear(in_channels, nclass)
 
     def forward(self, x):
-        en = self.encoding(x)
+        print (f'EncModule_encoding_x : {x.shape}')
+        # print(f'EncModule_encoding_x_reduce : {x.shape}')
+        en = self.encoding(x) #生成图片的embedding
+        print (f'EncModule_encoding_en : {en.shape}')
         b, c, _, _ = x.size()
-        gamma = self.fc(en)
+        gamma = self.fc(en) #embeding每个值设置一个阈值
+        print (f'EncModule_gamma : {gamma.shape}')
         y = gamma.view(b, c, 1, 1)
-        outputs = [F.relu_(x + x * y)]
+        outputs = [F.relu_(x + x * y)] #每个像素与embedding点乘，增加像素点的偏置信息
         if self.se_loss:
-            outputs.append(self.selayer(en))
+            outputs.append(self.selayer(en)) #embedding与类别的映射
+        print (f'outputs_len : {len(outputs)}')
         return tuple(outputs)
 
 
@@ -105,9 +121,11 @@ class EncHead(nn.Module):
 
     def forward(self, *inputs):
         feat = self.conv5(inputs[-1])
+        print (f'EncHead_input : {inputs[0].shape},{inputs[1].shape},{inputs[2].shape},{inputs[3].shape},feat_shape,{feat.shape}')
         if self.lateral:
             c2 = self.connect[0](inputs[1])
             c3 = self.connect[1](inputs[2])
+            print (f'c2,{c2.shape},c3,{c3.shape}')
             feat = self.fusion(torch.cat([feat, c2, c3], 1))
         outs = list(self.encmodule(feat))
         outs[0] = self.conv6(outs[0])

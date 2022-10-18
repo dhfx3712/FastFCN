@@ -24,9 +24,9 @@ class Options():
                             False, help='employ FPN')
         parser.add_argument('--dataset', type=str, default='ade20k',
                             help='dataset name (default: pascal12)')
-        parser.add_argument('--workers', type=int, default=16,
+        parser.add_argument('--workers', type=int, default=0,
                             metavar='N', help='dataloader threads')
-        parser.add_argument('--base-size', type=int, default=520,
+        parser.add_argument('--base-size', type=int, default=2,
                             help='base image size')
         parser.add_argument('--crop-size', type=int, default=480,
                             help='crop image size')
@@ -45,7 +45,7 @@ class Options():
                             help='number of epochs to train (default: auto)')
         parser.add_argument('--start_epoch', type=int, default=0,
                             metavar='N', help='start epochs (default:0)')
-        parser.add_argument('--batch-size', type=int, default=None,
+        parser.add_argument('--batch-size', type=int, default=2,
                             metavar='N', help='input batch size for \
                             training (default: auto)')
         parser.add_argument('--test-batch-size', type=int, default=None,

@@ -12,6 +12,8 @@ import torch
 from torch.utils import data
 import torchvision.transforms as transform
 from torch.nn.parallel.scatter_gather import gather
+import sys
+sys.path.append('/Users/admin/data/test_project/FastFCN')
 
 import encoding.utils as utils
 from encoding.nn import SegmentationLosses, SyncBatchNorm
@@ -19,7 +21,8 @@ from encoding.parallel import DataParallelModel, DataParallelCriterion
 from encoding.datasets import get_segmentation_dataset
 from encoding.models import get_segmentation_model
 
-from .option import Options
+# from .option import Options
+from experiments.segmentation.option import Options
 
 torch_ver = torch.__version__[:3]
 if torch_ver == '0.3':
@@ -48,13 +51,14 @@ class Trainer():
                                          drop_last=False, shuffle=False, **kwargs)
         self.nclass = trainset.num_class
         # model
+        # norm_layer = SyncBatchNorm https://github.com/zhanghang1989/PyTorch-Encoding/issues/148
         model = get_segmentation_model(args.model, dataset = args.dataset,
                                        backbone = args.backbone, dilated = args.dilated,
                                        lateral = args.lateral, jpu = args.jpu, aux = args.aux,
-                                       se_loss = args.se_loss, norm_layer = SyncBatchNorm,
+                                       se_loss = args.se_loss, norm_layer = torch.nn.BatchNorm2d,
                                        base_size = args.base_size, crop_size = args.crop_size)
-        print(model)
-        # optimizer using different LR
+        # print(model)
+        # optimizer using different LR. torchvsion中resnet50模型没有保存parameters对象，加载会失败
         params_list = [{'params': model.pretrained.parameters(), 'lr': args.lr},]
         if hasattr(model, 'jpu'):
             params_list.append({'params': model.jpu.parameters(), 'lr': args.lr*10})
@@ -108,6 +112,7 @@ class Trainer():
                 image = Variable(image)
                 target = Variable(target)
             outputs = self.model(image)
+            print (f'train_model_output_len : {len(outputs)}')
             loss = self.criterion(outputs, target)
             loss.backward()
             self.optimizer.step()

@@ -71,6 +71,8 @@ class AsppPooling(nn.Module):
     def forward(self, x):
         _, _, h, w = x.size()
         pool = self.gap(x)
+        print(f'aspp_pooling : {x.shape},{pool.shape}')
+
 
         return F.interpolate(pool, (h,w), **self._up_kwargs)
 
@@ -99,7 +101,9 @@ class ASPP_Module(nn.Module):
         feat1 = self.b1(x)
         feat2 = self.b2(x)
         feat3 = self.b3(x)
+        print(f'aspp_module : {feat0.shape},{feat1.shape},{feat2.shape},{feat3.shape}')
         feat4 = self.b4(x)
+
 
         y = torch.cat((feat0, feat1, feat2, feat3, feat4), 1)
 

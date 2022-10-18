@@ -95,6 +95,7 @@ class Encoding(Module):
             X = X.transpose(1, 2).contiguous()
         elif X.dim() == 4:
             # BxDxHxW => Bx(HW)xD
+            print (f'nn_encoding_x_shape : {X.shape}')
             X = X.view(B, D, -1).transpose(1, 2).contiguous()
         else:
             raise RuntimeError('Encoding Layer unknown input dims!')
@@ -102,6 +103,7 @@ class Encoding(Module):
         A = F.softmax(scaled_l2(X, self.codewords, self.scale), dim=2)
         # aggregate
         E = aggregate(A, X, self.codewords)
+        print(f'nn_encoding_E_shape : {E.shape}')
         return E
 
     def __repr__(self):

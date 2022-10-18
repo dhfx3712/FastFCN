@@ -258,9 +258,13 @@ def resnet50(pretrained=False, root='~/.encoding/models', **kwargs):
     """
     model = ResNet(Bottleneck, [3, 4, 6, 3], **kwargs)
     if pretrained:
-        from ..models.model_store import get_model_file
-        model.load_state_dict(torch.load(
-            get_model_file('resnet50', root=root)), strict=False)
+        # from ..models.model_store import get_model_file
+        # model.load_state_dict(torch.load(
+        #     get_model_file('resnet50', root=root)), strict=False)
+        from torchvision import models
+        import torch
+        model = models.resnet50(pretrained=False)
+        model.load_state_dict(torch.load('/Users/admin/Downloads/models/resnet50-0676ba61.pth'), strict=False)
     return model
 
 
