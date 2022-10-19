@@ -87,3 +87,18 @@ deeplabv3(两个分割损失)
 
 python experiments/segmentation/train.py --dataset pascal_voc --model deeplab --jpu JPU --no-cuda --aux  --dilated
 
+
+SegmentationClass/000129.png
+CLASSES = [
+        'background', 'aeroplane', 'bicycle', 'bird', 'boat', 'bottle', 
+        'bus', 'car', 'cat', 'chair', 'cow', 'diningtable', 'dog', 'horse',
+        'motorbike', 'person', 'potted-plant', 'sheep', 'sofa', 'train',
+        'tv/monitor', 'ambigious'
+    ]
+[  2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2
+   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2  15
+  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15  15
+  15  15  15  15  15  15  15  15  15 255 255 255 255 255   0   0   0   0
+   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+   0   0   0   0   0   0   0   0   0   0]
+目标索引与分类索引一一对应
